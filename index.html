@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengelola Keuangan</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <!-- Judul aplikasi -->
+    <h1>Pengelola Keuangan</h1>
+
+    <!-- Tombol ganti tema -->
+    <button id="toggleTheme" class="theme-btn">🌙 Mode Gelap</button>
+
+    <!-- Form input transaksi -->
+    <div class="form">
+      <input id="desc" placeholder="Deskripsi" />
+      <input id="amount" type="text" placeholder="Jumlah (contoh: 10.000)" />
+      <select id="type">
+        <option value="income">Pemasukan</option>
+        <option value="expense">Pengeluaran</option>
+      </select>
+      <button id="addBtn">Tambah</button>
+    </div>
+
+    <!-- Saldo saat ini -->
+    <div class="balance-box">
+      <h2>Saldo Saat Ini:</h2>
+      <h1 id="balance">Rp0</h1>
+    </div>
+
+    <!-- Ringkasan pemasukan & pengeluaran -->
+    <div class="summary">
+      <div class="card income-card">
+        <h3>Total Pemasukan</h3>
+        <p id="totalIncome">Rp0</p>
+      </div>
+      <div class="card expense-card">
+        <h3>Total Pengeluaran</h3>
+        <p id="totalExpense">Rp0</p>
+      </div>
+    </div>
+
+    <!-- Filter jenis transaksi -->
+    <div class="filter">
+      <label for="filterType">Tampilkan:</label>
+      <select id="filterType">
+        <option value="all">Semua</option>
+        <option value="income">Pemasukan saja</option>
+        <option value="expense">Pengeluaran saja</option>
+      </select>
+    </div>
+
+    <!-- Sortir transaksi -->
+    <div class="filter">
+      <label for="sortType">Urutkan:</label>
+      <select id="sortType">
+        <option value="date_desc">Tanggal terbaru</option>
+        <option value="date_asc">Tanggal terlama</option>
+        <option value="amount_desc">Nominal terbesar</option>
+        <option value="amount_asc">Nominal terkecil</option>
+      </select>
+    </div>
+<!-- Ekspor PDF -->
+<div class="filter">
+  <label>Ekspor PDF:</label>
+
+  <!-- Pilih jenis -->
+  <select id="exportType">
+    <option value="expense">Pengeluaran</option>
+    <option value="income">Pemasukan</option>
+  </select>
+
+  <!-- Pilih bulan -->
+  <select id="exportMonth">
+    <option value="">Bulan</option>
+    <option value="1">Januari</option>
+    <option value="2">Februari</option>
+    <option value="3">Maret</option>
+    <option value="4">April</option>
+    <option value="5">Mei</option>
+    <option value="6">Juni</option>
+    <option value="7">Juli</option>
+    <option value="8">Agustus</option>
+    <option value="9">September</option>
+    <option value="10">Oktober</option>
+    <option value="11">November</option>
+    <option value="12">Desember</option>
+  </select>
+
+  <!-- Pilih tahun -->
+  <input
+    type="number"
+    id="exportYear"
+    placeholder="Tahun"
+    value="2025"
+    min="2000"
+    max="2100"
+  />
+
+  <button id="exportPdfBtn">Ekspor PDF</button>
+</div>
+
+
+    <!-- Daftar transaksi -->
+    <ul id="list"></ul>
+
+    <!-- Tombol hapus semua data -->
+    <button id="clearAll" class="danger-btn">Hapus Semua Data</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
