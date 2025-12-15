@@ -17,8 +17,6 @@ class BaseManager {
   }
 }
 
-
-
 class FinanceManager extends BaseManager {
   constructor() {
     super(); 
@@ -65,16 +63,7 @@ class FinanceManager extends BaseManager {
   }
 }
 
-
 const manager = new FinanceManager();
-
-
-function formatRupiah(num) {
-  return "Rp" + num.toLocaleString("id-ID");
-}
-
-
-// ===================== DOM ELEMENTS =====================
 
 const descInput = document.getElementById("desc");
 const amountInput = document.getElementById("amount");
@@ -91,24 +80,20 @@ const sortTypeSelect = document.getElementById("sortType");
 const clearAllBtn = document.getElementById("clearAll");
 const themeBtn = document.getElementById("toggleTheme");
 
-/* ===== EKSPOR PDF ===== */
-const exportTypeSelect = document.getElementById("exportType");
 const exportMonthSelect = document.getElementById("exportMonth");
 const exportYearInput = document.getElementById("exportYear");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 
 
-
 let editingIndex = null;
 
+function formatRupiah(num) {
+  return "Rp" + num.toLocaleString("id-ID");
+}
 
-
-addBtn.addEventListener("click", () => {
+addBtn.onclick = () => {
   const desc = descInput.value.trim();
-
-  
-  const rawAmount = amountInput.value.replace(/[^\d-]/g, "");
-  const amount = parseInt(rawAmount, 10);
+  const amount = parseInt(amountInput.value.replace(/\D/g, ""));
   const type = typeInput.value;
 
   if (!desc || isNaN(amount)) {
@@ -131,14 +116,12 @@ addBtn.addEventListener("click", () => {
     addBtn.textContent = "Tambah";
     addBtn.classList.remove("editing");
   }
-
-  
+ 
   descInput.value = "";
   amountInput.value = "";
-  typeInput.value = "income";
 
   render();
-});
+};
 
 
 function render() {
@@ -236,21 +219,6 @@ window.deleteItem = function (index) {
 };
 
 
-
-if (clearAllBtn) {
-  clearAllBtn.addEventListener("click", () => {
-    if (confirm("Yakin ingin menghapus SEMUA transaksi?")) {
-      manager.clearAll();
-      editingIndex = null;
-      addBtn.textContent = "Tambah";
-      addBtn.classList.remove("editing");
-      render();
-    }
-  });
-}
-
-
-
 if (filterTypeSelect) {
   filterTypeSelect.addEventListener("change", render);
 }
@@ -280,10 +248,44 @@ if (themeBtn) {
     }
   });
 }
+function exportPDF() {
+  const month = exportMonthSelect.value;
+  const year = exportYearInput.value;
 
+  const filtered = transactions.filter(t => {
+    const date = new Date(t.date);
+    return date.getMonth() + 1 == month &&
+           date.getFullYear() == year;
+  });
+
+  if (filtered.length === 0) {
+    alert("Tidak ada data pada bulan ini");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.text(`Laporan Keuangan`, 14, 10);
+  doc.text(`Bulan: ${month} / ${year}`, 14, 18);
+
+  const tableData = filtered.map(t => [
+    new Date(t.date).toLocaleDateString("id-ID"),
+    t.desc,
+    t.type === "income" ? "Pemasukan" : "Pengeluaran",
+    formatRupiah(t.amount)
+  ]);
+
+  doc.autoTable({
+    head: [["Tanggal", "Deskripsi", "Tipe", "Nominal"]],
+    body: tableData,
+    startY: 25
+  });
+
+  doc.save(`laporan-keuangan-${month}-${year}.pdf`);
+}
 if (exportPdfBtn) {
   exportPdfBtn.addEventListener("click", () => {
-    const type = exportTypeSelect.value; // income / expense
     const month = exportMonthSelect.value;
     const year = exportYearInput.value;
 
@@ -292,11 +294,8 @@ if (exportPdfBtn) {
       return;
     }
 
-    // Filter transaksi sesuai pilihan
     const filteredData = manager.transactions.filter(t => {
-      if (t.type !== type) return false;
-
-      const date = new Date(t.timestamp || t.date);
+      const date = new Date(t.timestamp);
       return (
         date.getFullYear() == year &&
         date.getMonth() + 1 == parseInt(month)
@@ -308,22 +307,24 @@ if (exportPdfBtn) {
       return;
     }
 
-    const total = filteredData.reduce((sum, t) => sum + t.amount, 0);
-    const title =
-      type === "expense"
-        ? "Laporan Pengeluaran Bulanan"
-        : "Laporan Pemasukan Bulanan";
+    let totalIncome = 0;
+    let totalExpense = 0;
 
-    // Bangun HTML laporan
+    filteredData.forEach(t => {
+      if (t.type === "income") totalIncome += t.amount;
+      else totalExpense += t.amount;
+    });
+
     let reportHtml = `
-      <h2>${title}</h2>
-      <p><strong>Bulan:</strong> ${month}/${year}</p>
+      <h2 style="text-align:center;">Laporan Keuangan Bulanan</h2>
+      <p><strong>Periode:</strong> ${month}/${year}</p>
       <hr>
       <table border="1" cellspacing="0" cellpadding="6" width="100%">
         <tr>
           <th>No</th>
-          <th>Deskripsi</th>
           <th>Tanggal</th>
+          <th>Deskripsi</th>
+          <th>Tipe</th>
           <th>Nominal</th>
         </tr>
     `;
@@ -332,8 +333,9 @@ if (exportPdfBtn) {
       reportHtml += `
         <tr>
           <td>${i + 1}</td>
-          <td>${t.description}</td>
           <td>${t.date}</td>
+          <td>${t.description}</td>
+          <td>${t.type === "income" ? "Pemasukan" : "Pengeluaran"}</td>
           <td>${formatRupiah(t.amount)}</td>
         </tr>
       `;
@@ -341,21 +343,23 @@ if (exportPdfBtn) {
 
     reportHtml += `
         <tr>
-          <td colspan="3"><strong>Total</strong></td>
-          <td><strong>${formatRupiah(total)}</strong></td>
+          <td colspan="4"><strong>Total Pemasukan</strong></td>
+          <td><strong>${formatRupiah(totalIncome)}</strong></td>
+        </tr>
+        <tr>
+          <td colspan="4"><strong>Total Pengeluaran</strong></td>
+          <td><strong>${formatRupiah(totalExpense)}</strong></td>
         </tr>
       </table>
     `;
 
-    // Cetak → simpan PDF
-    const printWindow = window.open("", "", "width=800,height=600");
+    const printWindow = window.open("", "", "width=900,height=600");
     printWindow.document.write(`
       <html>
         <head>
-          <title>${title}</title>
+          <title>Laporan Keuangan</title>
           <style>
             body { font-family: Arial; padding: 20px; }
-            h2 { text-align: center; }
             table { border-collapse: collapse; }
             th { background: #f2f2f2; }
           </style>
@@ -371,6 +375,5 @@ if (exportPdfBtn) {
     printWindow.print();
   });
 }
-
 
 render();
